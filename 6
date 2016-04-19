@@ -1,0 +1,246 @@
+Experiment No: 6 [ SL VI]
+Server
+
+import java.io.DataInputStream;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Server {
+	boolean close=false;
+	boolean inputfromall=false;
+	List<ClientThread> t;
+	List<String> data;
+	Server()
+	{
+		t=new ArrayList<ClientThread>();
+		data=new ArrayList<String>();
+	}
+	public static void main(String args[])
+	{
+		Socket clientsocket=null;
+		ServerSocket serversocket=null;
+		int portno=5678;
+		Server ser=new Server();
+		try
+		{
+			serversocket=new ServerSocket(portno);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		while(!ser.close)
+		{
+			try
+			{
+				clientsocket=serversocket.accept();
+				ClientThread th=new ClientThread(clientsocket,ser);
+				(ser.t).add(th);
+				System.out.println("Total Clients= "+(ser.t).size());
+				(ser.data).add("NOT_SENT");
+				th.start();
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+		try
+		{
+			serversocket.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	
+	}
+}
+class ClientThread extends  Thread
+{
+	DataInputStream is=null;
+	String line,destclient="",name,clientid;
+	PrintStream os=null;
+	Socket clientsocket=null;
+	Server ser;
+	public ClientThread(Socket clientsocket, Server ser) {
+		super();
+		this.clientsocket = clientsocket;
+		this.ser = ser;
+	}
+	public void run()
+	{
+		try
+		{
+			is=new DataInputStream(clientsocket.getInputStream());
+			os=new PrintStream(clientsocket.getOutputStream());
+			os.println("Enter You Name???");
+			name=is.readLine();
+			clientid=name;
+			os.println("Welcome "+name+" To Two Phase Commit Protocol Application!!!\n");
+			os.println("You Will Shortly Receive A Vote Request.\n");
+			os.println("VOTE_REQUEST\nPlease Enter COMMIT Or ABORT To Proceed...\n");
+			int i;
+			for(i=0;i<(ser.t).size();i++)
+			{
+				if((ser.t).get(i)!=this)
+				{
+					((ser.t).get(i)).os.println("A New User "+name+" Entered The Application");
+				}
+			}
+			while(true)
+			{
+				line=is.readLine();
+				if(line.equalsIgnoreCase("ABORT"))
+				{
+					System.out.println("\nFrom "+clientid+" : ABORT\nAs We Have Received ABORT Signal From "+clientid+" We Are Aborting The Transaction.\n");
+					System.out.println("\nWe Will Not Wait For REsponses From Other Clients.\n");
+					System.out.println("\nABORTED.....\n");
+					for(i=0;i<(ser.t).size();i++)
+					{
+						((ser.t).get(i)).os.println("\nGLOBAL_ABORT\n");
+						((ser.t).get(i)).os.close();
+						((ser.t).get(i)).is.close();
+					}
+					break;
+				}
+				if(line.equalsIgnoreCase("COMMIT"))
+				{
+					System.out.println("\nFrom"+clientid+" : COMMIT\n");
+					if((ser.t).contains(this))
+					{
+						(ser.data).set((ser.t).indexOf(this),"COMMIT");
+						for(int j=0;j<(ser.data).size();j++)
+						{
+							if(!(((ser.data).get(j)).equalsIgnoreCase("NOT_SENT")))
+							{
+								ser.inputfromall=true;
+								continue;
+							}
+							else
+							{
+								ser.inputfromall=false;
+								System.out.println("\nWaiting For Inputs From Other Clients\n");
+								break;
+							}
+						}
+						if(ser.inputfromall)
+						{
+							System.out.println("\nCOMMITTED.....\n");
+							for(i=0;i<(ser.t).size();i++)
+							{
+								((ser.t).get(i)).os.println("\nGLOBAL_COMMIT\n");
+								((ser.t).get(i)).os.close();
+								((ser.t).get(i)).is.close();
+							}
+							break;
+						}
+					}
+				}
+			}
+			ser.close=true;
+			clientsocket.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+	}
+
+
+
+
+Client:
+
+
+import java.net.*;
+import java.io.*;
+
+public class Client implements Runnable{
+	static Socket clientSocket=null;
+	static PrintStream os=null;
+	static DataInputStream is=null;
+	static BufferedReader br=null;
+	static boolean close=false;
+public static void main(String args[])
+{
+	int portno=5678;
+	String host="localhost";
+	try
+	{
+		clientSocket=new Socket(host,portno);
+		br=new BufferedReader(new InputStreamReader(System.in));
+		os=new PrintStream(clientSocket.getOutputStream());
+		is=new DataInputStream(clientSocket.getInputStream());
+	}
+	catch(Exception e)
+	{
+		e.printStackTrace();
+	}
+	if(clientSocket!=null && os!=null && is!=null)
+	{
+		try
+		{
+			new Thread(new Client()).start();
+			while(!close)
+			{
+				os.println(br.readLine());
+			}
+			os.close();
+			is.close();
+			clientSocket.close();
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+}
+
+@Override
+public void run() {
+	String response;
+	try
+	{
+		while((response=is.readLine())!=null)
+		{
+			System.out.println("\n"+response);
+			if(response.equalsIgnoreCase("GLOBAL_COMMIT")==true||response.equalsIgnoreCase("GLOBAL_ABORT")==true)
+			{
+				break;
+			}
+		}
+		close=true;
+	}
+	catch(Exception e)
+	{
+		e.printStackTrace();
+	}
+}
+}
+
+
+Output:
+
+
+Enter You Name???
+sai
+
+Welcome Harshal To Two Phase Commit Protocol Application!!!
+
+
+
+You Will Shortly Receive A Vote Request.
+
+
+
+VOTE_REQUEST
+
+Please Enter COMMIT Or ABORT To Proceed...
+
+
+

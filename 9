@@ -1,0 +1,410 @@
+Expt: 9
+
+Query 1
+var params={
+    TableName:"Music1",
+    KeySchema:[
+        
+        {AttributeName:"Artist", KeyType:"HASH"},
+        
+        {AttributeName:"SongTitle", KeyType:"RANGE"}
+    ],
+        
+    AttributeDefinitions:[
+        {AttributeName:"Artist",AttributeType:"S"},
+        {AttributeName:"SongTitle",AttributeType:"S"}
+        
+        ],
+        
+        ProvisionedThroughput:{
+            ReadCapacityUnits: 1,
+            WriteCapacityUnits: 1
+        }
+};
+dynamodb.createTable(params,function(err,data){
+    if(err)
+        console.log(JSON.stringify(err,null,2));
+    else
+        console.log(JSON.stringify(data,null,2));
+});
+
+Query 1 Output
+=> 
+{
+  "TableDescription": {
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "Artist",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "SongTitle",
+        "AttributeType": "S"
+      }
+    ],
+    "TableName": "Music1",
+    "KeySchema": [
+      {
+        "AttributeName": "Artist",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "SongTitle",
+        "KeyType": "RANGE"
+      }
+    ],
+    "TableStatus": "ACTIVE",
+    "CreationDateTime": "2016-03-16T08:17:26.422Z",
+    "ProvisionedThroughput": {
+      "LastIncreaseDateTime": "1970-01-01T00:00:00.000Z",
+      "LastDecreaseDateTime": "1970-01-01T00:00:00.000Z",
+      "NumberOfDecreasesToday": 0,
+      "ReadCapacityUnits": 1,
+      "WriteCapacityUnits": 1
+    },
+    "TableSizeBytes": 0,
+    "ItemCount": 0,
+    "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/Music1"
+  }
+}
+   
+Query 2
+
+var params = {
+    TableName : "Music"
+    
+};
+dynamodb.describeTable(params, function(err,data){
+    if(err)
+        console.log(JSON.stringify(err,null,2));
+    else
+        console.log(JSON.stringify(data,null,2));
+});
+
+Query 2 Output
+
+=> 
+{
+  "Table": {
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "Artist",
+        "AttributeType": "S"
+      },
+      {
+        "AttributeName": "SongTitle",
+        "AttributeType": "S"
+      }
+    ],
+    "TableName": "Music",
+    "KeySchema": [
+      {
+        "AttributeName": "Artist",
+        "KeyType": "HASH"
+      },
+      {
+        "AttributeName": "SongTitle",
+        "KeyType": "RANGE"
+      }
+    ],
+    "TableStatus": "ACTIVE",
+    "CreationDateTime": "2016-03-16T08:14:35.566Z",
+    "ProvisionedThroughput": {
+      "LastIncreaseDateTime": "1970-01-01T00:00:00.000Z",
+      "LastDecreaseDateTime": "1970-01-01T00:00:00.000Z",
+      "NumberOfDecreasesToday": 0,
+      "ReadCapacityUnits": 1,
+      "WriteCapacityUnits": 1
+    },
+    "TableSizeBytes": 0,
+    "ItemCount": 0,
+    "TableArn": "arn:aws:dynamodb:ddblocal:000000000000:table/Music"
+  }
+}
+
+Query 3
+
+var params = {};
+
+dynamodb.listTables(params, function(err,data){
+    if(err)
+        console.log(JSON.stringify(err,null,2));
+    else
+        console.log(JSON.stringify(data,null,2));
+});
+
+Query 3 Output
+
+=> 
+{
+  "TableNames": [
+    "Music",
+    "Music1"
+  ]
+}
+
+Query 4
+
+var params = {
+TableName: "Music",
+Item: {
+"Artist":"No One You Know",
+"SongTitle":"Call Me Today",
+"AlbumTitle":"Somewhat Famous",
+"Year": 2015,
+"Price": 2.14,
+"Genre": "Country",
+"Tags": {
+"Composers": [
+"Smith",
+"Jones",
+"Davis"
+],
+"LengthInSeconds": 214
+}
+}
+};
+docClient.put(params, function(err, data) {
+if (err)
+console.log(JSON.stringify(err, null, 2));
+else
+console.log(JSON.stringify(data, null, 2));
+});
+
+Query 4 Output
+
+=> 
+{}
+
+Query 5
+
+var params = {
+TableName: "Music",
+Item: {
+"Artist":"No One You Know",
+"SongTitle":"Call Me Today",
+"AlbumTitle":"Somewhat Famous",
+"Year": 2015,
+"Price": 2.14,
+"Genre": "Country",
+"Tags": {
+"Composers": [
+"Smith",
+"Jones",
+"Davis"
+],
+"LengthInSeconds": 214
+}
+},
+"ConditionExpression": "attribute_not_exists(Artist) and attribute_not_exists(SongTitle)"
+};
+
+Query 5 Output
+
+    The conditional write fails because the item already exists.
+
+Query 6
+
+var params = {
+RequestItems: {
+"Music": [
+{
+PutRequest: {
+Item: {
+"Artist": "No One You Know",
+"SongTitle": "My Dog Spot",
+"AlbumTitle":"Hey Now",
+"Price": 1.98,
+"Genre": "Country",
+"CriticRating": 8.4
+}
+}
+},
+{
+PutRequest: {
+Item: {
+"Artist": "No One You Know",
+"SongTitle": "Somewhere Down The Road",
+"AlbumTitle":"Somewhat Famous",
+"Genre": "Country",
+"CriticRating": 8.4,
+"Year": 1984
+}
+}
+},
+{
+PutRequest: {
+Item: {
+"Artist": "The Acme Band",
+"SongTitle": "Still In Love",
+"AlbumTitle":"The Buck Starts Here",
+"Price": 2.47,
+"Genre": "Rock",
+"PromotionInfo": {
+"RadioStationsPlaying":[
+"KHCR", "KBQX", "WTNR", "WJJH"
+],
+"TourDates": {
+"Seattle": "20150625",
+"Cleveland": "20150630"
+},
+"Rotation": "Heavy"
+}
+}
+}
+},
+{
+PutRequest: {
+Item: {
+"Artist": "The Acme Band",
+"SongTitle": "Look Out, World",
+"AlbumTitle":"The Buck Starts Here",
+"Price": 0.99,
+"Genre": "Rock"
+}
+}
+}
+]
+}
+};
+docClient.batchWrite(params, function (err, data) {
+if (err)
+console.log(JSON.stringify(err, null, 2));
+else
+console.log(JSON.stringify(data, null, 2));
+});
+
+Query 6 Output
+
+=> 
+{
+  "UnprocessedItems": {}
+}
+
+Query 7
+
+var params = {
+    TableName: "Music",
+    Key: {
+        "Artist": "No One You Know",
+        "SongTitle": "Call Me Today"
+        }
+};
+    docClient.get(params, function(err, data) {
+    if (err)
+        console.log(JSON.stringify(err, null, 2));
+    else
+        console.log(JSON.stringify(data, null, 2));
+});
+
+Query 7 Output
+
+=> 
+{
+  "Item": {
+    "Genre": "Country",
+    "AlbumTitle": "Somewhat Famous",
+    "Year": 2015,
+    "Tags": {
+      "Composers": [
+        "Smith",
+        "Jones",
+        "Davis"
+      ],
+      "LengthInSeconds": 214
+    },
+    "Artist": "No One You Know",
+    "Price": 2.14,
+    "SongTitle": "Call Me Today"
+  }
+}
+
+Query 8
+
+var params = {
+    TableName: "Music",
+   Key: {
+        "Artist": "No One You Know",
+        "SongTitle": "My Dog Spot"
+}
+};
+    docClient.get(params, function(err, data) {
+    if (err)
+        console.log(JSON.stringify(err, null, 2));
+    else
+        console.log(JSON.stringify(data, null, 2));
+});
+
+Query 8 Output
+=> 
+{
+  "Item": {
+    "Genre": "Country",
+    "AlbumTitle": "Hey Now",
+    "Artist": "No One You Know",
+    "CriticRating": 8.4,
+    "SongTitle": "My Dog Spot",
+    "Price": 1.98
+  }
+}
+
+Query 9
+
+var params = {
+    TableName: "Music",
+   Key: {
+        "Artist": "No One You Know",
+        "SongTitle": "Somewhere Down The Road"
+}
+};
+    docClient.get(params, function(err, data) {
+    if (err)
+        console.log(JSON.stringify(err, null, 2));
+    else
+        console.log(JSON.stringify(data, null, 2));
+});
+
+Query 9 Output
+
+=> 
+{
+  "Item": {
+    "Genre": "Country",
+    "AlbumTitle": "Somewhat Famous",
+    "Year": 1984,
+    "Artist": "No One You Know",
+    "CriticRating": 8.4,
+    "SongTitle": "Somewhere Down The Road"
+  }
+}
+
+Query 10
+
+var params = {
+    TableName: "Music",
+  Key: {
+        "Artist": "The Acme Band",
+        "SongTitle": "Look Out, World"
+}
+};
+    docClient.get(params, function(err, data) {
+    if (err)
+        console.log(JSON.stringify(err, null, 2));
+    else
+        console.log(JSON.stringify(data, null, 2));
+});
+
+Query 10 Output
+
+=> 
+{
+  "Item": {
+    "Genre": "Rock",
+    "AlbumTitle": "The Buck Starts Here",
+    "Artist": "The Acme Band",
+    "SongTitle": "Look Out, World",
+    "Price": 0.99
+  }
+}
+
+

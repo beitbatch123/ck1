@@ -1,0 +1,37 @@
+				ASSIGNMENT NOI:02
+
+be_ck@sai-desktop:~$ ~/cassandra/bin/cqlsh 
+Connected to Test Cluster at 127.0.0.1:9042. 
+[cqlsh 5.0.1 | Cassandra 2.2.4 | CQL spec 3.3.1 | Native protocol v4] 
+Use HELP for help. 
+
+cqlsh> CREATE KEYSPACE MYKEYSPACE22 WITH REPLICATION = {'class':'SimpleStrategy','replication_factor':1}; 
+cqlsh> USE MYKEYSPACE22; 
+
+qlsh:mykeyspace22> CREATE TABLE STUDENT(ROLL int PRIMARY KEY,fname text,lname text); 
+
+cqlsh:mykeyspace22> INSERT INTO STUDENT ROLL,fname,lname)VALUES(1,'CHAITANYA','KALE');
+
+cqlsh:mykeyspace22> INSERT INTO STUDENT (ROLL,fname,lname)VALUES(2,'DADASAHEB','JADHAV'); 
+
+cqlsh:mykeyspace22> INSERT INTO STUDENT (ROLL,fname,lname)VALUES(3,'TUSHAR','PAWAR'); 
+
+cqlsh:mykeyspace22> SELECT * FROM STUDENT; 
+
+ roll | fname   | lname 
+------+---------+--------- 
+    1 |  CHAITANYA |  KALE
+    2 |   DADASAHEB | JADHAV 
+    4 | TUSHAR| PAWAR 
+    
+
+(4 rows) 
+cqlsh:mykeyspace22> CREATE INDEX ON STUDENT (lname); 
+
+cqlsh:mykeyspace22> SELECT * FROM STUDENT WHERE lname = 'KALE'; 
+
+ roll | fname  | lname 
+------+--------+-------- 
+    1 | CHAITANYA | KALE 
+
+(1 rows) 

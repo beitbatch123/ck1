@@ -1,0 +1,131 @@
+				ASSIGNMENT NOI:03
+				
+be-snehal@sai-desktop:~$ ~/cassandra/bin/cqlsh 
+Connected to Test Cluster at 127.0.0.1:9042. 
+[cqlsh 5.0.1 | Cassandra 2.2.4 | CQL spec 3.3.1 | Native protocol v4] 
+Use HELP for help. 
+cqlsh> create keyspace mykeyspace300 with replication = {'class':'SimpleStrategy','replication_factor':1}; 
+
+cqlsh> USE mykeyspace300; 
+
+cqlsh:mykeyspace300> create table songs(id int PRIMARY KEY,title text,album tex,artist text,data blob); 
+
+cqlsh:mykeyspace300> create table playlist(id int,song_order int,song_id int,tile text,album text,artist text,PRIMARY KEY(ID,SONG_ORDER)); 
+
+cqlsh:mykeyspace300> insert into playlist(id,song_order,song_id,title,artist,alum)values(100,1,10001,'Dheere Dheere','YO YO','Honey album');
+
+cqlsh:mykeyspace300> insert into playlist(id,song_order,song_id,title,artist,alum)values(101,2,10002,'Chahu main na','Arijit singh ','arijit album');
+
+cqlsh:mykeyspace300> insert into playlist(id,song_order,song_id,title,artist,alum)values(103,3,10003,'Diwani-Mastani','shreya ghoshal ','shreya album');
+
+cqlsh:mykeyspace300> insert into playlist(id,song_order,song_id,title,artist,alum)values(104,4,10004,'chalte chalte','Sonu Nigam ','Sonu album'); 
+
+cqlsh:mykeyspace300> select * from playlist; 
+
+ id  | song_order | album        | artist          | song_id | title 
+-----+------------+--------------+-----------------+---------+---------------- 
+ 100 |          1 |  Honey album |           YO YO |   10001 |  Dheere Dheere 
+ 104 |          4 |   Sonu album |     Sonu Nigam  |   10004 |  chalte chalte 
+ 101 |          2 | arijit album |   Arijit singh  |   10002 |  Chahu main na 
+ 103 |          3 | shreya album | shreya ghoshal  |   10003 | Diwani-Mastani 
+
+(4 rows)
+
+cqlsh:mykeyspace300> create index on playlist(artist); 
+
+cqlsh:mykeyspace300> select album,title from playlist where artist='YO YO'; 
+
+ album       | title 
+-------------+--------------- 
+ Honey album | Dheere Dheere 
+
+(1 rows) 
+
+cqlsh:mykeyspace300> select * from playlist where id=100 ORDER BY song_order DEC LIMIT 50; 
+
+ id  | song_order | album       | artist | song_id | title 
+-----+------------+-------------+--------+---------+--------------- 
+ 100 |          1 | Honey album |  YO YO |   10001 | Dheere Dheere 
+
+(1 rows) 
+
+cqlsh:mykeyspace300> alter table playlist ADD tags set<text>; 
+
+cqlsh:mykeyspace300> select * from playlist; 
+
+ id  | song_order | album        | artist          | song_id | tags | title 
+-----+------------+--------------+-----------------+---------+------+---------------- 
+ 100 |          1 |  Honey album |           YO YO |   10001 | null |  Dheere Dheere 
+ 104 |          4 |   Sonu album |     Sonu Nigam  |   10004 | null |  chalte chalte 
+ 101 |          2 | arijit album |   Arijit singh  |   10002 | null |  Chahu main na 
+ 103 |          3 | shreya album | shreya ghoshal  |   10003 | null | Diwani-Mastani 
+
+(4 rows) 
+
+cqlsh:mykeyspace300> update playlist SET tags=tags +{'2010'}where id=100 AND sog_order=2; 
+
+cqlsh:mykeyspace300> update playlist SET tags=tags +{'2012'}where id=101 AND sog_order=3; 
+
+cqlsh:mykeyspace300> select * from playlist; 
+
+ id  | song_order | album        | artist          | song_id | tags     | title 
+-----+------------+--------------+-----------------+---------+----------+---------------- 
+ 100 |          1 |  Honey album |           YO YO |   10001 |     null |  Dheere Dheere 
+ 100 |          2 |         null |            null |    null | {'2010'} |           null 
+ 104 |          4 |   Sonu album |     Sonu Nigam  |   10004 |     null |  chalte chalte 
+ 101 |          2 | arijit album |   Arijit singh  |   10002 |     null |  Chahu main na 
+ 101 |          3 |         null |            null |    null | {'2012'} |           null 
+ 103 |          3 | shreya album | shreya ghoshal  |   10003 |     null | Diwani-Mastani 
+
+(6 rows) 
+
+
+
+
+
+cqlsh:mykeyspace300> alter table playlist ADD reviews list<text>; 
+
+cqlsh:mykeyspace300> update playlist SET reviews=reviews + ['best lyrics']whereid=100 and song_order=1;
+
+cqlsh:mykeyspace300> select * from playlist;
+
+ id  | song_order | album        | artist          | reviews         | song_id | tags     | title 
+-----+------------+--------------+-----------------+-----------------+---------+----------+---------------- 
+ 100 |          1 |  Honey album |           YO YO | ['best lyrics'] |   10001 |     null |  Dheere Dheere 
+ 100 |          2 |         null |            null |            null |    null | {'2010'} |           null 
+ 104 |          4 |   Sonu album |     Sonu Nigam  |            null |   10004 |     null |  chalte chalte 
+ 101 |          2 | arijit album |   Arijit singh  |            null |   10002 |     null |  Chahu main na 
+ 101 |          3 |         null |            null |            null |    null | {'2012'} |           null 
+ 103 |          3 | shreya album | shreya ghoshal  |            null |   10003 |     null | Diwani-Mastani 
+
+(6 rows) 
+cqlsh:mykeyspace300> alter table playlist ADD venue map<timestamp,text>; 
+cqlsh:mykeyspace300> insert into playlist(id,song_order,venue)values(100,4,{'205-9-22 22:00':'The Fillmore','2016-10-1 21:00':'The apple barrel'}); 
+cqlsh:mykeyspace300> select * from playlist; 
+ id  | song_order | album        | artist          | reviews         | song_id | tags     | title          | venue 
+-----+------------+--------------+-----------------+-----------------+---------+----------+----------------+---------------------------------------------------------------------------------------------- 
+ 100 |          1 |  Honey album |           YO YO | ['best lyrics'] |   10001 |     null |  Dheere Dheere |                                                                                         null 
+ 100 |          2 |         null |            null |            null |    null | {'2010'} |           null |                                                                                         null 
+ 100 |          4 |         null |            null |            null |    null |     null |           null | {'2015-09-22 16:30:00+0000': 'The Fillmore', '2016-10-01 15:30:00+0000': 'The apple barrel'} 
+ 104 |          4 |   Sonu album |     Sonu Nigam  |            null |   10004 |     null |  chalte chalte |                                                                                         null 
+ 101 |          2 | arijit album |   Arijit singh  |            null |   10002 |     null |  Chahu main na |                                                                                         null 
+ 101 |          3 |         null |            null |            null |    null | {'2012'} |           null |                                                                                         null 
+ 103 |          3 | shreya album | shreya ghoshal  |            null |   10003 |     null | Diwani-Mastani |                                                                                         null 
+                      
+
+cqlsh:mykeyspace300> select * from playlist;
+cqlsh:mykeyspace300> create index on playlist(tags); 
+cqlsh:mykeyspace300> create index mymapindex on playlist(venue); 
+cqlsh:mykeyspace300> select album,tags from playlist; 
+
+ album        | tags 
+--------------+---------- 
+  Honey album |     null 
+         null | {'2010'} 
+         null |     null 
+   Sonu album |     null 
+ arijit album |     null 
+         null | {'2012'} 
+ shreya album |     null 
+
+(7 rows) 

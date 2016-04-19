@@ -1,0 +1,207 @@
+Exp 08 SL6
+
+# start cassandra daemon 
+~/cassandra/bin/cassandra -f
+
+# open a new terminal 
+~/cassandra/bin/cqlsh
+
+beit61@sai-desktop:~$ ~/cassandra/bin/cqlsh 
+Connected to Test Cluster at 127.0.0.1:9042. 
+[cqlsh 5.0.1 | Cassandra 2.2.4 | CQL spec 3.3.1 | Native protocol v4] 
+Use HELP for help. 
+cqlsh> CREATE KEYSPACE mykeyspace1001 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }; 
+cqlsh> USE mykeyspace1001; 
+cqlsh:mykeyspace1001> CREATE TABLE songs ( 
+                  ... id int PRIMARY KEY, 
+                  ... title text, 
+                  ... album text, 
+                  ... artist text, 
+                  ... data blob 
+                  ... ); 
+cqlsh:mykeyspace1001> CREATE TABLE playlists ( 
+                  ... id int, 
+                  ... song_order int, 
+                  ... song_id int, 
+                  ... title text, 
+                  ... album text, 
+                  ... artist text, 
+                  ... PRIMARY KEY (id, song_order ) ); 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, song_id, title, artist, album) 
+                  ... VALUES (100, 1,1001, 'La Grange', 'Mike', 'Tres Hombres'); 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, song_id, title, artist, album) 
+                  ... VALUES (100, 2,1002,'Moving in', 'Swift', 'We must Obey'); 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, song_id, title, artist, album) 
+                  ... VALUES (100, 3,1003, 'One day', 'Justin', 'Roll Away'); 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, song_id, title, artist, album) 
+                  ... VALUES (100, 4,1004,'Ojo Rojo', 'Swift', 'No One'); 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | title 
+-----+------------+--------------+--------+---------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |   One day 
+ 100 |          4 |       No One |  Swift |    1004 |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> CREATE INDEX ON playlists( artist ); 
+cqlsh:mykeyspace1001> SELECT album, title FROM playlists WHERE artist = 'Swift'; 
+
+ album        | title 
+--------------+----------- 
+ We must Obey | Moving in 
+       No One |  Ojo Rojo 
+
+(2 rows) 
+cqlsh:mykeyspace1001> SELECT * FROM playlists WHERE id = 100 
+                  ... ORDER BY song_order DESC LIMIT 50; 
+
+ id  | song_order | album        | artist | song_id | title 
+-----+------------+--------------+--------+---------+----------- 
+ 100 |          4 |       No One |  Swift |    1004 |  Ojo Rojo 
+ 100 |          3 |    Roll Away | Justin |    1003 |   One day 
+ 100 |          2 | We must Obey |  Swift |    1002 | Moving in 
+ 100 |          1 | Tres Hombres |   Mike |    1001 | La Grange 
+
+(4 rows) 
+cqlsh:mykeyspace1001> ALTER TABLE playlists ADD tags set<text>; 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'2010'} WHERE id = 100 AND song_order = 4; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags     | title 
+-----+------------+--------------+--------+---------+----------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |     null | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 |     null | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |     null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 | {'2010'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'2007'} WHERE id = 100 AND song_order = 2; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags     | title 
+-----+------------+--------------+--------+---------+----------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |     null | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | {'2007'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |     null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 | {'2010'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'classic'} WHERE id = 100 AND song_order = 2; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags                | title 
+-----+------------+--------------+--------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |                null | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 |            {'2010'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'1973'} WHERE id = 100 AND song_order = 1; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags                | title 
+-----+------------+--------------+--------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |            {'1973'} | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 |            {'2010'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'blues'} WHERE id = 100 AND song_order = 1; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags                | title 
+-----+------------+--------------+--------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |   {'1973', 'blues'} | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 |            {'2010'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET tags = tags + {'rock'} WHERE id = 100 AND song_order = 4; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | song_id | tags                | title 
+-----+------------+--------------+--------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |    1001 |   {'1973', 'blues'} | La Grange 
+ 100 |          2 | We must Obey |  Swift |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift |    1004 |    {'2010', 'rock'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> ALTER TABLE playlists ADD reviews list<text>; 
+cqlsh:mykeyspace1001> UPDATE playlists SET reviews =reviews + [ 'best lyrics' ] WHERE id=100 and song_order= 4; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | reviews         | song_id | tags                | title 
+-----+------------+--------------+--------+-----------------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |            null |    1001 |   {'1973', 'blues'} | La Grange 
+ 100 |          2 | We must Obey |  Swift |            null |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |            null |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift | ['best lyrics'] |    1004 |    {'2010', 'rock'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> UPDATE playlists SET reviews =reviews + [ 'magical' ] WHERE id=100 and song_order= 4; 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+
+ id  | song_order | album        | artist | reviews                    | song_id | tags                | title 
+-----+------------+--------------+--------+----------------------------+---------+---------------------+----------- 
+ 100 |          1 | Tres Hombres |   Mike |                       null |    1001 |   {'1973', 'blues'} | La Grange 
+ 100 |          2 | We must Obey |  Swift |                       null |    1002 | {'2007', 'classic'} | Moving in 
+ 100 |          3 |    Roll Away | Justin |                       null |    1003 |                null |   One day 
+ 100 |          4 |       No One |  Swift | ['best lyrics', 'magical'] |    1004 |    {'2010', 'rock'} |  Ojo Rojo 
+
+(4 rows) 
+cqlsh:mykeyspace1001> ALTER TABLE playlists ADD venue map<timestamp, text>; 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, venue) 
+                  ... VALUES (100, 4, { '2016-9-22 22:00' : 'The Fillmore', '2016-10-1 21:00' : 'The Apple Barrel'}); 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+ id  | song_order | album        | artist | reviews                    | song_id | tags                | title     | venue 
+-----+------------+--------------+--------+----------------------------+---------+---------------------+-----------+---------------------------------------------------------------------------------------------- 
+ 100 |          1 | Tres Hombres |   Mike |                       null |    1001 |   {'1973', 'blues'} | La Grange |                                                                                         null 
+ 100 |          2 | We must Obey |  Swift |                       null |    1002 | {'2007', 'classic'} | Moving in |                                                                                         null 
+ 100 |          3 |    Roll Away | Justin |                       null |    1003 |                null |   One day |                                                                                         null 
+ 100 |          4 |       No One |  Swift | ['best lyrics', 'magical'] |    1004 |    {'2010', 'rock'} |  Ojo Rojo | {'2016-09-22 16:30:00+0000': 'The Fillmore', '2016-10-01 15:30:00+0000': 'The Apple Barrel'} 
+
+(4 rows) 
+cqlsh:mykeyspace1001> INSERT INTO playlists (id, song_order, venue) 
+                  ... VALUES (100, 3, { '2016-1-12 22:00' : 'Cactus Cafe', '2016-01-22 20:00' : 'Mohawk'}); 
+cqlsh:mykeyspace1001> SELECT * FROM playlists; 
+ id  | song_order | album        | artist | reviews                    | song_id | tags                | title     | venue 
+-----+------------+--------------+--------+----------------------------+---------+---------------------+-----------+---------------------------------------------------------------------------------------------- 
+ 100 |          1 | Tres Hombres |   Mike |                       null |    1001 |   {'1973', 'blues'} | La Grange |                                                                                         null 
+ 100 |          2 | We must Obey |  Swift |                       null |    1002 | {'2007', 'classic'} | Moving in |                                                                                         null 
+ 100 |          3 |    Roll Away | Justin |                       null |    1003 |                null |   One day |            {'2016-01-12 16:30:00+0000': 'Cactus Cafe', '2016-01-22 14:30:00+0000': 'Mohawk'} 
+ 100 |          4 |       No One |  Swift | ['best lyrics', 'magical'] |    1004 |    {'2010', 'rock'} |  Ojo Rojo | {'2016-09-22 16:30:00+0000': 'The Fillmore', '2016-10-01 15:30:00+0000': 'The Apple Barrel'} 
+
+(4 rows) 
+cqlsh:mykeyspace1001> CREATE INDEX ON playlists (tags); 
+cqlsh:mykeyspace1001> CREATE INDEX mymapindex ON playlists (venue); 
+cqlsh:mykeyspace1001> SELECT album, tags FROM playlists; 
+
+ album        | tags 
+--------------+--------------------- 
+ Tres Hombres |   {'1973', 'blues'} 
+ We must Obey | {'2007', 'classic'} 
+    Roll Away |                null 
+       No One |    {'2010', 'rock'} 
+
+(4 rows) 
+cqlsh:mykeyspace1001> SELECT album, tags FROM playlists WHERE tags CONTAINS 'blues'; 
+
+ album        | tags 
+--------------+------------------- 
+ Tres Hombres | {'1973', 'blues'} 
+
+(1 rows) 
+cqlsh:mykeyspace1001> SELECT artist, venue FROM playlists WHERE venue CONTAINS 'The Fillmore'; 
+
+ artist | venue 
+--------+---------------------------------------------------------------------------------------------- 
+  Swift | {'2016-09-22 16:30:00+0000': 'The Fillmore', '2016-10-01 15:30:00+0000': 'The Apple Barrel'} 
+
+(1 rows) 
+cqlsh:mykeyspace1001> 

@@ -1,0 +1,549 @@
+=====================SL6 EXPERIMENT NO:11=======================
+************Knn.java*********
+package clutering;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.classifiers.evaluation.NominalPrediction;
+import weka.classifiers.rules.DecisionTable;
+import weka.classifiers.rules.PART;
+import weka.classifiers.trees.DecisionStump;
+import weka.classifiers.trees.J48;
+import weka.core.FastVector;
+import weka.core.Instances;
+public class Knn {
+public static BufferedReader readDataFile(String fileName)
+{
+	BufferedReader input=null;
+	try
+	{
+		input=new BufferedReader(new FileReader(fileName));
+	}
+	catch(Exception e)
+	{
+		e.printStackTrace();
+	}
+	return input;
+}
+public static Evaluation Classify(Classifier model,Instances trainingSet,Instances testingSet) throws Exception
+{
+	Evaluation evaluation=new Evaluation(trainingSet);
+	model.buildClassifier(trainingSet);
+	evaluation.evaluateModel(model, testingSet);
+	return evaluation;
+}
+public static double CalculateAccuracy(FastVector predictions)
+{
+	double correct=0;
+	for(int i=0;i<predictions.size();i++)
+	{
+		NominalPrediction np=(NominalPrediction) predictions.elementAt(i);
+		if(np.predicted()==np.actual())
+		{
+			correct++;
+		}
+	}
+	return 100*correct/predictions.size();
+}
+public static Instances[][] CrossValidation(Instances data,int n)
+{
+	Instances[][] s=new Instances[2][n];
+	for(int i=0;i<n;i++)
+	{
+		s[0][i]=data.trainCV(n, i);
+		s[1][i]=data.testCV(n, i);
+	}
+	return s;
+}
+public static void main(String args[]) throws Exception
+{
+	BufferedReader dataFile=readDataFile("weather.txt");
+	Instances data=new Instances(dataFile);
+	data.setClassIndex(data.numAttributes()-1);
+	Instances[][] s=CrossValidation(data,10);
+	Instances[] training=s[0];
+	Instances[] testing=s[1];
+	Classifier[] models={
+				new J48(),
+				new PART(),
+				new DecisionTable(),
+				new DecisionStump(),
+			       };
+	for(int j=0;j<models.length;j++)
+	{
+		FastVector predictions=new FastVector();
+		for(int i=0;i<training.length;i++)
+		{
+			Evaluation validation=Classify(models[j],training[i],testing[i]);
+			predictions.appendElements(validation.predictions());
+			System.out.println(models[j].toString());
+		}
+		double accuracy=CalculateAccuracy(predictions);
+		System.out.println("Accuracy Of "+models[j].getClass().getSimpleName(
++":"+String.format("%.2f%%", accuracy)+"\n\n");
+	}
+}
+}
+***************weather.txt***********
+@relation weather
+@attribute outlook {sunny, overcast, rainy}
+@attribute temperature numeric
+@attribute humidity numeric
+@attribute windy {TRUE, FALSE}
+@attribute play {yes, no}
+@data
+sunny,85,85,FALSE,no
+sunny,80,90,TRUE,no
+overcast,83,86,FALSE,yes
+rainy,70,96,FALSE,yes
+rainy,68,80,FALSE,yes
+rainy,65,70,TRUE,no
+overcast,64,65,TRUE,yes
+sunny,72,95,FALSE,no
+sunny,69,70,FALSE,yes
+rainy,75,80,FALSE,yes
+sunny,75,70,TRUE,yes
+overcast,72,90,TRUE,yes
+overcast,81,75,FALSE,yes
+rainy,71,91,TRUE,no
+
+
+
+
+========================OUTPUT========================
+J48 pruned tree
+------------------
+: yes (12.0/3.0)
+Number of Leaves  : 	1
+Size of the tree : 	1
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 75: yes (2.0)
+|   humidity > 75: no (3.0)
+outlook = overcast: yes (3.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (2.0)
+Number of Leaves  : 	5
+Size of the tree : 	8
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 75: yes (2.0)
+|   humidity > 75: no (3.0)
+outlook = overcast: yes (4.0)
+outlook = rainy: yes (3.0/1.0)
+Number of Leaves  : 	4
+Size of the tree : 	6
+J48 pruned tree
+------------------
+outlook = sunny
+|   temperature <= 75: yes (2.0)
+|   temperature > 75: no (2.0)
+outlook = overcast: yes (3.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (3.0)
+Number of Leaves  : 	5
+Size of the tree : 	8
+J48 pruned tree
+------------------
+outlook = sunny: no (4.0/1.0)
+outlook = overcast: yes (4.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (3.0)
+Number of Leaves  : 	4
+Size of the tree : 	6
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 75: yes (2.0)
+|   humidity > 75: no (3.0)
+outlook = overcast: yes (4.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (2.0)
+Number of Leaves  : 	5
+
+Size of the tree : 	8
+J48 pruned tree
+------------------
+outlook = sunny: no (4.0/1.0)
+outlook = overcast: yes (4.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (3.0)
+Number of Leaves  : 	4
+Size of the tree : 	6
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 75: yes (2.0)
+|   humidity > 75: no (3.0)
+outlook = overcast: yes (3.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (3.0)
+Number of Leaves  : 	5
+Size of the tree : 	8
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 70: yes (2.0)
+|   humidity > 70: no (3.0)
+outlook = overcast: yes (3.0)
+outlook = rainy
+|   windy = TRUE: no (2.0)
+|   windy = FALSE: yes (3.0)
+Number of Leaves  : 	5
+Size of the tree : 	8
+J48 pruned tree
+------------------
+outlook = sunny
+|   humidity <= 75: yes (2.0)
+|   humidity > 75: no (3.0)
+outlook = overcast: yes (4.0)
+outlook = rainy: yes (4.0/1.0)
+Number of Leaves  : 	4
+Size of the tree : 	6
+Accuracy Of J48:50.00%
+
+PART decision list
+------------------
+outlook = overcast: yes (4.0)
+windy = FALSE: yes (5.0/1.0): no (3.0/1.0)
+Number of Rules  : 	3
+PART decision list
+------------------
+outlook = sunny AND
+humidity > 75: no (3.0)
+outlook = overcast: yes (3.0)
+windy = TRUE: no (3.0/1.0): yes (3.0)
+Number of Rules  : 	4
+PART decision list
+------------------
+outlook = overcast: yes (4.0)
+humidity > 80: no (5.0/1.0): yes (3.0)
+Number of Rules  : 	3
+PART decision list
+------------------
+outlook = overcast: yes (3.0)
+windy = FALSE: yes (5.0/1.0): no (4.0/1.0)
+Number of Rules  : 	3
+PART decision list
+------------------
+outlook = sunny: no (4.0/1.0)
+windy = FALSE: yes (5.0)
+outlook = overcast: yes (2.0): no (2.0)
+Number of Rules  : 	4
+PART decision list
+------------------
+outlook = overcast: yes (4.0)
+windy = TRUE: no (4.0/1.0)
+temperature <= 71: yes (3.0): no (2.0)
+Number of Rules  : 	4
+PART decision list
+------------------
+outlook = sunny: no (4.0/1.0)
+windy = FALSE: yes (5.0)
+outlook = overcast: yes (2.0): no (2.0)
+Number of Rules  : 	4
+PART decision list
+------------------
+outlook = sunny AND
+humidity > 75: no (3.0): yes (10.0/2.0)
+Number of Rules  : 	2
+PART decision list
+------------------
+outlook = sunny AND
+humidity > 70: no (3.0)
+windy = FALSE: yes (5.0)
+outlook = overcast: yes (2.0): no (3.0/1.0)
+Number of Rules  : 	4
+PART decision list
+------------------
+outlook = overcast: yes (4.0)
+outlook = rainy: yes (4.0/1.0)
+humidity > 75: no (3.0): yes (2.0)
+Number of Rules  : 	4
+Accuracy Of PART:50.00%
+
+Decision Table:
+Number of training instances: 12
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   75    
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 12
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   58.333
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 12
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   66.667
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 12
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 12
+	Merit of best subset found:   66.667
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   61.538
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   61.538
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 12
+	Merit of best subset found:   61.538
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 12
+	Merit of best subset found:   61.538
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   61.538
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Decision Table:
+Number of training instances: 13
+Number of Rules : 1
+Non matches covered by Majority class.
+	Best first.
+	Start set: no attributes
+	Search direction: forward
+	Stale search after 5 node expansions
+	Total number of subsets evaluated: 13
+	Merit of best subset found:   69.231
+Evaluation (for feature selection): CV (leave one out) 
+Feature set: 5
+Accuracy Of DecisionTable:64.29%
+
+Decision Stump
+Classifications
+humidity <= 90.5 : yes
+humidity > 90.5 : no
+humidity is missing : yes
+Class distributions
+humidity <= 90.5
+yes	no	
+0.8888888888888888	0.1111111111111111	
+humidity > 90.5
+yes	no	
+0.3333333333333333	0.6666666666666666	
+humidity is missing
+yes	no	
+0.75	0.25	
+Decision Stump
+Classifications
+humidity <= 82.5 : yes
+humidity > 82.5 : no
+humidity is missing : yes
+Class distributions
+humidity <= 82.5
+yes	no	
+0.8571428571428571	0.14285714285714285	
+humidity > 82.5
+yes	no	
+0.2	0.8	
+humidity is missing
+yes	no	
+0.5833333333333334	0.4166666666666667	
+Decision Stump
+Classifications
+humidity <= 82.5 : yes
+humidity > 82.5 : no
+humidity is missing : yes
+Class distributions
+humidity <= 82.5
+yes	no	
+1.0	0.0	
+humidity > 82.5
+yes	no	
+0.42857142857142855	0.5714285714285714	
+humidity is missing
+yes	no	
+0.6666666666666666	0.3333333333333333	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : yes
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.5555555555555556	0.4444444444444444	
+outlook is missing
+yes	no	
+0.6666666666666666	0.3333333333333333	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : no
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.4444444444444444	0.5555555555555556	
+outlook is missing
+yes	no	
+0.6153846153846154	0.38461538461538464	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : no
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.4444444444444444	0.5555555555555556	
+outlook is missing
+yes	no	
+0.6153846153846154	0.38461538461538464	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : no
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.4444444444444444	0.5555555555555556	
+outlook is missing
+yes	no	
+0.6153846153846154	0.38461538461538464	
+Decision Stump
+Classifications
+humidity <= 82.5 : yes
+humidity > 82.5 : no
+humidity is missing : yes
+Class distributions
+humidity <= 82.5
+yes	no	
+0.8571428571428571	0.14285714285714285	
+humidity > 82.5
+yes	no	
+0.3333333333333333	0.6666666666666666	
+humidity is missing
+yes	no	
+0.6153846153846154	0.38461538461538464	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : yes
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.5	0.5	
+outlook is missing
+yes	no	
+0.6153846153846154	0.38461538461538464	
+Decision Stump
+Classifications
+outlook = overcast : yes
+outlook != overcast : yes
+outlook is missing : yes
+Class distributions
+outlook = overcast
+yes	no	
+1.0	0.0	
+outlook != overcast
+yes	no	
+0.5555555555555556	0.4444444444444444	
+outlook is missing
+yes	no	
+0.6923076923076923	0.3076923076923077	
+Accuracy Of DecisionStump:21.43%
+
+
+

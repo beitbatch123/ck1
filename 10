@@ -1,0 +1,124 @@
+
+SL6-Exp10
+
+package sl6exp10;
+
+import java.util.Scanner;
+
+public class PageRanking {
+	public int path[][]=new int[10][10];     //matrix
+	public double pagerank[]=new double[10];   //array
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		int nodes,i,j,cost;
+		Scanner sc=new Scanner(System.in);
+		System.out.println("\nEnter the total no of web pages");
+		nodes=sc.nextInt();
+		PageRanking p=new PageRanking();
+		System.out.println("\nEnter the adjacency matrix");
+		for(i=1;i<=nodes;i++)
+		{
+			for(j=1;j<=nodes;j++)
+			{
+				p.path[i][j]=sc.nextInt();
+				if(i==j)
+				{
+					p.path[i][j]=0;
+				}
+			}
+		}
+		p.calculate(nodes);
+	}
+	private void calculate(int nodes) {
+		// TODO Auto-generated method stub
+		double initial,c=0;
+		double arr[]=new double[10];
+		int i,j,u=1,k=1;
+		initial=(double)1/nodes;
+		System.out.println("total no of web pages:"+nodes);
+		System.out.println("\nInitial rank value:"+initial);
+		for(i=1;i<=nodes;i++)
+		{
+			this.pagerank[i]=initial;
+		}
+		while(u<=2)
+		{
+			for(i=1;i<=nodes;i++)
+			{
+				arr[i]=this.pagerank[i];
+				 this.pagerank[i]=0;
+			}
+			for(j=1;j<=nodes;j++)
+			{
+				for(i=1;i<=nodes;i++)
+				{
+					if(this.path[i][j]==1)
+					{
+						k=1;
+						c=0;
+						while(k<=nodes) //finding incoming edges
+						{
+							if(this.path[i][k]==1)
+							{
+								c++;
+							}
+							k++;
+						}
+						this.pagerank[j]=this.pagerank[j]+arr[i]*(1/c);
+					}
+					
+				}
+			}
+			System.out.println("\nAfter step no and variable value"+u);
+			for(i=1;i<=nodes;i++)
+			{
+				System.out.println("\npage rank of "+i+" is "+this.pagerank[i]);
+		
+			}
+			u++;
+		}
+	}
+}
+
+
+
+
+=======================OUTPUT=========================================
+		
+Enter the total no of web pages
+5
+
+Enter the adjacency matrix
+0 1 1 0 0
+0 0 0 0 1 
+0 0 0 0 0
+1 0 0 0 1
+1 0 0 0 0
+total no of web pages:5
+
+Initial rank value:0.2
+
+After step no and variable value1
+
+page rank of 1 is 0.30000000000000004
+
+page rank of 2 is 0.1
+
+page rank of 3 is 0.1
+
+page rank of 4 is 0.0
+
+page rank of 5 is 0.30000000000000004
+
+After step no and variable value2
+
+page rank of 1 is 0.30000000000000004
+
+page rank of 2 is 0.15000000000000002
+
+page rank of 3 is 0.15000000000000002
+
+page rank of 4 is 0.0
+
+page rank of 5 is 0.1
+

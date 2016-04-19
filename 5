@@ -1,0 +1,367 @@
+Experiment No: 5 [ SL VI]
+
+//
+*****Product.java*****
+package exp5;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.PrimaryKey;
+import javax.jdo.annotations.Persistent;
+import javax.jdo.annotations.IdGeneratorStrategy;
+@PersistenceCapable
+public class Product {
+@PrimaryKey
+@Persistent(valueStrategy=IdGeneratorStrategy.INCREMENT)
+ long id;
+ String name=null;
+ String description=null;
+ double price=0.0;
+public Product(String name, String description, double price) {
+	super();
+	this.name = name;
+	this.description = description;
+	this.price = price;
+}
+}
+
+*****Book.java*****
+package exp5;
+import javax.jdo.annotations.PersistenceCapable;
+@PersistenceCapable
+public class Book extends Product {
+	String author=null;
+	String isbn=null;
+	String publisher=null;
+	
+	public Book(String name, String description, double price, String author, String isbn, String 	publisher) {
+		super(name, description, price);
+		this.author = author;
+		this.isbn = isbn;
+		this.publisher = publisher;
+		}
+}
+
+*****Inventory.java*****
+package exp5;
+import java.util.Set;
+import javax.jdo.annotations.PersistenceCapable;
+import javax.jdo.annotations.PrimaryKey;
+import java.util.HashSet;
+@PersistenceCapable
+@PrimaryKey
+public class Inventory {
+	String name=null;
+	Set<Product> products=new HashSet();
+	public Set<Product> getProducts() {
+		return products;
+	}
+	public Inventory(String name) {
+		super();
+		this.name = name;
+	}
+}
+
+*****package.jdo*****
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jdo PUBLIC
+    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
+    "http://java.sun.com/dtd/jdo_2_0.dtd">
+<jdo>
+    <package name="exp5">
+        <class
+              name="Inventory">
+            <field
+                  name="name"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="products"
+                  persistence-modifier="persistent"/>
+        </class>
+        <class
+              name="Product">
+            <field
+                  name="id"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="name"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="description"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="price"
+                  persistence-modifier="persistent"/>
+        </class>
+        <class
+              name="Book">
+            <field
+                  name="author"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="isbn"
+                  persistence-modifier="persistent"/>
+            <field
+                  name="publisher"
+                  persistence-modifier="persistent"/>
+        </class>
+*****persistence.xml*****
+</package>
+</jdo>
+<?xml version="1.0" encoding="UTF-8" ?>
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd" version="1.0">
+
+    <persistence-unit name="TEST">
+        <mapping-file>/home/be_shraddha/workspace/exp5/src/exp5/package.jdo</mapping-file>
+        <properties>
+			<property name="javax.jdo.option.ConnectionURL" value="cassandra:"/>
+			<property name="javax.jdo.mapping.Schema" value="keyspace1"/>
+			<property name="datanucleus.schema.autoCreateAll" value="true"/>
+		</properties>
+    </persistence-unit>
+</persistence>
+
+*****MyApp.java*****
+package exp5;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import javax.jdo.JDOHelper;
+import javax.jdo.PersistenceManager;
+import javax.jdo.PersistenceManagerFactory;
+import javax.jdo.Query;
+import javax.jdo.Transaction;
+public class MyApp {
+	public static void main(String args[])
+	{
+					PersistenceManagerFactorypmf=JDOHelper.getPersistenceManagerFactory("TEST");
+		PersistenceManager pm=pmf.getPersistenceManager();
+		javax.jdo.Transaction tx=pm.currentTransaction();
+		try
+		{
+			tx.begin();
+			Inventory in=new Inventory("MyInventory");
+			Product prd=new Product("Sony Camera","Best",600);
+			Product prd1=new Product("Sony Experia Z1","Good",50);
+			Product prd2=new Product("Sony Bravia","Best",1000);
+			Product prd3=new Product("LG Refrigerator","Good",570);
+			Product prd4=new Product("LG Microwave Ovan","High Quality",225);
+			Product prd5=new Product("DELL Inspiron","Ok",180);
+			Product prd6=new Product("Lenovo Laptop","Good",150);
+			Product prd7=new Product("Micromax Canvas","Ok",2000);
+			Product prd8=new Product("Samsung S6","High Quality",120);
+			Product prd9=new Product("Sony Xperia Z6","High Quality",180);
+			
+			in.getProducts().add(prd);
+			in.getProducts().add(prd1);
+			in.getProducts().add(prd2);
+			in.getProducts().add(prd3);
+			in.getProducts().add(prd4);
+			in.getProducts().add(prd5);
+			in.getProducts().add(prd6);
+			in.getProducts().add(prd7);
+			in.getProducts().add(prd8);
+			in.getProducts().add(prd9);
+
+			pm.makePersistent(in);
+			Query q1=pm.newQuery("SELECT FROM "+Product.class.getName());
+			List<Product> pro=(List<Product>)q1.execute();
+			Iterator<Product> it=pro.iterator();
+			System.out.println("All Products..");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+	System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q2=pm.newQuery("SELECT FROM "+Product.class.getName()+" WHERE price<150.00");
+			pro=(List<Product>)q2.execute();
+			it=pro.iterator();
+			System.out.println("PRICE < 150");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+	System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q3=pm.newQuery("SELECT FROM "+Product.class.getName()+" WHERE price<150.00 ORDER BY price ASC ");
+			pro=(List<Product>)q3.execute();
+			it=pro.iterator();
+			System.out.println("PRICE ORDER BY*****************");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+	     System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q4=pm.newQuery(Product.class);
+			q4.setOrdering("name ASC");
+			pro=(List<Product>)q4.execute();
+			it=pro.iterator();
+			System.out.println("All Products in Ascending order by Name.....");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q5=pm.newQuery(Product.class);
+			q5.setOrdering("name DESC");
+			pro=(List<Product>)q5.execute();
+			it=pro.iterator();
+			System.out.println("All Products in Descending order by Name.....");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q6=pm.newQuery(Product.class);
+			q6.setFilter("price > max");
+			q6.declareParameters("int max");
+			q6.deletePersistentAll(500);
+			pro=(List<Product>)q1.execute();
+			it=pro.iterator();
+			System.out.println("PRODUCTS DELETION");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q7=pm.newQuery(Product.class,":p.contains(name)");
+			pro=(List<Product>)q7.execute(Arrays.asList("Sony Experia Z1","Lenovo 		Laptop"));
+			it=pro.iterator();
+			System.out.println("Searching Product Name.....");
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q8=pm.newQuery("SELECT FROM "+Product.class.getName());
+			q8.setRange(5, 10);
+			pro=(List<Product>)q8.execute();
+			it=pro.iterator();
+			System.out.println("All Products..");	
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q9=pm.newQuery("SELECT FROM "+Product.class.getName()+ " WHERE price<150.00 ORDER BY description ASC");
+			pro=(List<Product>)q9.execute();
+			it=pro.iterator();
+			System.out.println("All Products..");	
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			Query q10=pm.newQuery("SELECT FROM "+Product.class.getName()+ " ORDER BY description ASC");
+			pro=(List<Product>)q10.execute();
+			it=pro.iterator();
+			System.out.println("All Products..");	
+			while(it.hasNext())
+			{
+				Product p=it.next();
+				System.out.println("Name="+p.name+"\tDescription="+p.description+"\tPrice"+p.price);
+			}
+			
+			
+			tx.commit();
+		}
+		catch(Exception e)
+		{
+			System.out.println("Error is occured...."+e.getMessage());
+			e.printStackTrace();
+		}
+		finally
+		{
+			if(tx.isActive())
+			{
+				tx.rollback();
+			}
+			pm.close();
+		}
+	}
+}
+
+******OUTPUT******
+
+1: All Products....
+Name=Sony Xperia Z6		Description=High Quality		Price180.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=DELL Inspiron		Description=Ok			Price180.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+Name=Samsung S6			Description=High Quality		Price120.0
+Name=Micromax Canvas		Description=Ok			Price2000.0
+Name=Sony Bravia			Description=Best			Price1000.0
+
+2: PRICE < 150
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Samsung S6			Description=High Quality		Price120.0
+
+3: PRICE ORDER BY....
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Samsung S6			Description=High Quality		Price120.0
+
+4: All Products in Ascending order by Name.....
+Name=DELL Inspiron		Description=Ok			Price180.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=LG Refrigerator		Description=Good			Price570.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+Name=Micromax Canvas		Description=Ok			Price2000.0
+Name=Samsung S6			Description=High Quality		Price120.0
+Name=Sony Bravia			Description=Best			Price1000.0
+Name=Sony Camera		Description=Best			Price600.0
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Sony Xperia Z6		Description=High Quality		Price180.0
+
+5: All Products in Descending order by Name.....
+Name=Sony Xperia Z6		Description=High Quality		Price180.0
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Sony Camera		Description=Best			Price600.0
+Name=Sony Bravia			Description=Best			Price1000.0
+Name=Samsung S6			Description=High Quality		Price120.0
+Name=Micromax Canvas		Description=Ok			Price2000.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+Name=LG Refrigerator		Description=Good			Price570.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=DELL Inspiron		Description=Ok			Price180.0
+
+6: PRODUCTS DELETION
+Name=Sony Xperia Z6		Description=High Quality		Price180.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=DELL Inspiron		Description=Ok			Price180.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+Name=Samsung S6			Description=High Quality		Price120.0
+
+7: Searching Product Name.....
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+
+8: All Products with setRange....
+Name=DELL Inspiron		Description=Ok			Price180.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=Lenovo Laptop		Description=Good			Price150.0
+
+9: All Products  with PRICE < 150 ordered by Description....
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Samsung S6			Description=High Quality		Price120.0
+
+10: All Products ordered by Description....
+Name=Lenovo Laptop		Description=Good			Price150.0
+Name=Sony Experia Z1		Description=Good			Price50.0
+Name=Sony Xperia Z6		Description=High Quality		Price180.0
+Name=LG Microwave Ovan	Description=High Quality		Price225.0
+Name=Samsung S6			Description=High Quality		Price120.0
+Name=DELL Inspiron		Description=Ok			Price180.0
+
+
+
+

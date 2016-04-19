@@ -1,0 +1,139 @@
+
+Experiment No: 4 [ SL VI]
+
+Aim: Implement any one Partitioning technique in Parallel Databases
+Steps:
+First install and configure Cassandra from,
+https://sl6it.wordpress.com/2015/12/10/4-installation-of-nosql-database-cassandra/
+# start cassandra daemon
+~/cassandra/bin/cassandra -f
+# The cassandra daemon should start in the foreground
+# (don’t press ctrl + c; as it’ll terminate the daemon)
+# Open eclipse->new java project->project name Partitioning
+# Create new class under your project -> Partitioning-> add following code
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
+public class partitioning {
+	public static void main(String[] args) {
+		int totno_of_disk=4;
+		int V[]={30,50,70};//size of V=totno_of_disk-1
+		try
+		{
+			Cluster cluster;
+			Session session;
+			// Connect to the cluster and keyspace "demo"
+			cluster = Cluster.builder().addContactPoint("127.0.0.1").build();
+			session = cluster.connect();
+			
+			// First, create a keyspace
+			session.execute("CREATE KEYSPACE IF NOT EXISTS demokeyspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }");
+			// use the new keyspace:
+			session.execute("USE demokeyspace");
+			// Create playlists table
+			session.execute("CREATE TABLE IF NOT EXISTS playlists (id int,song_order int,song_id int,title text,album text,artist text,PRIMARY KEY (id, song_order ) )");
+			
+			// Insert one record into the playlists table
+			session.execute("INSERT INTO playlists (id, song_order, song_id, title, artist, album)VALUES (101, 10,1001, 'La Grange', 'Dinesh', 'Love aaj kal')");
+			session.execute("INSERT INTO playlists (id, song_order, song_id, title, artist, album)VALUES (102, 34,1002, 'Om sai Ram', 'Harshal', 'Tere naal love ho gya')");
+			session.execute("INSERT INTO playlists (id, song_order, song_id, title, artist, album)VALUES (103, 60,1002,'Moving in', 'Swapnil', 'Aapka surur....')");
+			session.execute("INSERT INTO playlists (id, song_order, song_id, title, artist, album)VALUES (104, 90,1003, 'One day', 'Sandeep', 'kabhi kabhi..');");
+			session.execute("INSERT INTO playlists (id, song_order, song_id, title, artist, album)VALUES (105, 40,1005, 'One day', 'Sandy', 'kabhi kabhi..');");
+			// Use select to get the user we just entered
+			ResultSet results = session.execute("SELECT * FROM playlists");
+			int i=0;
+			System.out.println("Round Robin");
+			for (Row row : results) 
+			{
+				
+				System.out.print("Disk no :"+i%totno_of_disk+" : ");
+				System.out.format("%d \t%s\t\t%s\n", row.getInt("id"), row.getString("album"), row.getString("artist"));
+				i++;
+			}
+			results = session.execute("SELECT * FROM playlists");
+			i=0;
+
+			System.out.println("Hash Partioning");
+			for (Row row : results) 
+			{
+				System.out.print("Disk no :"+((row.getInt("song_order"))%totno_of_disk)+" : ");
+				System.out.format("%d \t%s\t\t%s\n", row.getInt("id"), row.getString("album"), row.getString("artist"));
+			
+			}
+			results = session.execute("SELECT * FROM playlists");
+			System.out.println("Range Partioning");
+			i=0;
+			for (Row row : results) 
+			{
+				int v=row.getInt("song_order");
+				for(i=0;i<=totno_of_disk-2;i++)
+				{
+					if(V[i]<=v&&v<V[i+1])
+					{
+						System.out.print("Disk no :"+(i+1)+" : ");
+						break;
+					}
+					else if(v<V[0])
+					{
+						System.out.print("Disk no :"+0+" : ");
+						break;
+					}
+					else if(v>V[totno_of_disk-2])
+					{
+						System.out.print("Disk no :"+(totno_of_disk-1)+" : ");
+						break;
+					}
+				}
+				System.out.format("%d \t%s\t\t%s\n", row.getInt("id"), row.getString("album"), row.getString("artist"));
+				i++;
+			}
+		
+	}
+	catch(Exception e)
+	{
+		System.out.println("Error: "+e.getMessage());
+	}
+		
+	}
+}	
+
+
+            ------------------------------------------- output ---------------------------------------------
+
+Round Robin
+Disk no :0 : 105 	kabhi kabhi..		Sandy
+Disk no :1 : 104 	kabhi kabhi..		Sandeep
+Disk no :2 : 102 	Tere naal love ho gya		Harshal
+Disk no :3 : 101 	Love aaj kal		Dinesh
+Disk no :0 : 103 	Aapka surur....		Swapnil
+Hash Partioning
+Disk no :0 : 105 	kabhi kabhi..		Sandy
+Disk no :2 : 104 	kabhi kabhi..		Sandeep
+Disk no :2 : 102 	Tere naal love ho gya		Harshal
+Disk no :2 : 101 	Love aaj kal		Dinesh
+Disk no :0 : 103 	Aapka surur....		Swapnil
+Range Partioning
+Disk no :1 : 105 	kabhi kabhi..		Sandy
+Disk no :3 : 104 	kabhi kabhi..		Sandeep
+Disk no :1 : 102 	Tere naal love ho gya		Harshal
+Disk no :0 : 101 	Love aaj kal		Dinesh
+Disk no :2 : 103 	Aapka surur....		Swapnil
+
+
+
+
+
+
+
+# It will display some errors, so we are going to import some jar files in the project. 
+# Please download the cassandra-java driver from 
+http://downloads.datastax.com/java-driver/cassandra-java-driver-2.0.2.tar.gz 
+Extract it. 
+# Paste all jar files (total 12)from the extracted folder into your eclipse project 
+(10 jar files are present under lib folder) 
+# One by one, right click on pasted jarfile (in eclipse)-> Build path -> add to build path 
+# Add all pasted jar files to build path 
+# Run the project

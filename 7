@@ -1,0 +1,610 @@
+ ====================== SL6 EXPERIMENT NO:7 ==========================
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xquery.XQConnection;
+import javax.xml.xquery.XQDataSource;
+import javax.xml.xquery.XQException;
+import javax.xml.xquery.XQPreparedExpression;
+import javax.xml.xquery.XQResultSequence;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import com.saxonica.xqj.SaxonXQDataSource;
+public class MainClass {
+	public static void main(String[] args) throws ParserConfigurationException, FileNotFoundException, SAXException, IOException, XPathExpressionException, XQException {
+		// TODO Auto-generated method stub
+		int id;
+		DocumentBuilderFactory builderFactory=DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder=null;
+		Document document=null;
+		XPath xpath=XPathFactory.newInstance().newXPath();
+		String expression=null;
+		Scanner sc=new Scanner(System.in);
+		builder=builderFactory.newDocumentBuilder();
+		document=builder.parse(new FileInputStream("employee.xml"));
+		//Query No 1:
+		System.out.println("\nQUERY NO:1: DISPLAYING LOCATION EMPLOYEE");
+		System.out.println("\n Enter empid to get the location :");
+		id=sc.nextInt();
+		expression="/employees/employee[id='"+id+"']/location";
+		String location=xpath.compile(expression).evaluate(document);
+		if(!location.equals(" "))
+			System.out.println("\nLocation Having Id "+id+" Is:"+location);
+		else
+			System.out.println("\nId Doesn't Exist...");
+		//Query No 2:
+		System.out.println("\nQUERY NO:2: DISPLAYING FIRSTNAME OF ALL EMPLOYEES");
+		expression="/employees/employee/name";
+		NodeList nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+		for(int i=0;i<nodeList.getLength();i++)
+		{
+			System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+		}
+		//Query No 3:
+		System.out.println("\nQUERY NO:3: DISPLAYING ALL RECORD OF PARTICULAR EMPLOYEE");
+		System.out.println("Enter Empid:");
+		id=sc.nextInt();
+		expression="/employees/employee[id='"+id+"']";
+		Node node=(Node)xpath.compile(expression).evaluate(document,XPathConstants.NODE);
+		if(null!=node)
+		{
+			nodeList=node.getChildNodes();
+			for(int i=0;null!=nodeList && i<nodeList.getLength();i++)
+			{
+				Node nod=nodeList.item(i);
+				if(nod.getNodeType()==Node.ELEMENT_NODE)
+				{
+					System.out.println(nodeList.item(i).getNodeName()+":"+nod.getFirstChild().getNodeValue()+"\n");
+				}
+			}
+		}
+		//Query No 4:
+		System.out.println("\nQUERY NO:4: DISPLAYING NAMES OF EMPLOYEES WHOSE AGE<25");
+		expression="/employees/employee[age<40]/name";
+		nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+		for(int i=0;i<nodeList.getLength();i++)
+		{
+			System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+		}
+		//Query No 5:
+		System.out.println("\nQUERY NO:5: FIRST EMPLOYEE REGISTERED");
+		expression="/employees/employee[1]";
+		node=(Node)xpath.compile(expression).evaluate(document,XPathConstants.NODE);
+		if(null!=node)
+		{
+			nodeList=node.getChildNodes();
+			for(int i=0;null!=nodeList && i<nodeList.getLength();i++)
+			{
+				Node nod=nodeList.item(i);
+				if(nod.getNodeType()==Node.ELEMENT_NODE)
+				{
+					System.out.println(nodeList.item(i).getNodeName()+":"+nod.getFirstChild().getNodeValue()+"\n");
+				}
+			}
+		}
+		//Query No 6:
+				System.out.println("\nQUERY NO:6: LAST EMPLOYEE REGIETERED");
+				expression="/employees/employee[last()]";
+				node=(Node)xpath.compile(expression).evaluate(document,XPathConstants.NODE);
+				if(null!=node)
+				{
+					nodeList=node.getChildNodes();
+					for(int i=0;null!=nodeList && i<nodeList.getLength();i++)
+					{
+						Node nod=nodeList.item(i);
+						if(nod.getNodeType()==Node.ELEMENT_NODE)
+						{
+							System.out.println(nodeList.item(i).getNodeName()+":"+nod.getFirstChild().getNodeValue()+"\n");
+						}
+					}
+				}	
+				//Query No 7:
+				System.out.println("\nQUERY NO:7: FIRST NAME OF ALL TEAM LEADERS");
+				expression="/employees/employee[designation='Team Leader']/name";
+				nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+				for(int i=0;i<nodeList.getLength();i++)
+				{
+					System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+				}
+				//Query No 8:
+				System.out.println("\nQUERY NO:8: LAST NAME OF ALL MANAGERS");
+				expression="/employees/employee[designation='Manager']/lastname";
+				nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+				for(int i=0;i<nodeList.getLength();i++)
+				{
+					System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+				}	
+				//Query No 9:
+				System.out.println("\nQUERY NO:9: AGE OF ALL TRAINEES");
+				expression="/employees/employee[designation='Trainee']/age";
+				nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+				for(int i=0;i<nodeList.getLength();i++)
+				{
+					System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+				}			
+				//Query No 10:
+				System.out.println("\nQUERY NO:10: SALARY OF ALL SUPERVISORS");
+				expression="/employees/employee[designation='Manager']/salary";
+				nodeList=(NodeList)xpath.compile(expression).evaluate(document,XPathConstants.NODESET);
+				for(int i=0;i<nodeList.getLength();i++)
+				{
+					System.out.println(nodeList.item(i).getFirstChild().getNodeValue()+"\n");
+				}	
+				//Query No 11:
+				System.out.println("\nQUERY NO:11: FLOWR EXPRESSION EXAMPLE");
+				System.out.println("\nGET FIRST NAME OF ALL EMPLOYEES HAVING AGE>30 USING FLOWR EXPRESSION");
+				InputStream is=new FileInputStream(new File("employee_flowr.xqy"));
+				XQDataSource ds=new SaxonXQDataSource();
+				XQConnection con=ds.getConnection();
+				XQPreparedExpression exp=con.prepareExpression(is);
+				XQResultSequence result=exp.executeQuery();
+				while(result.next())
+				{
+					System.out.println("\n"+result.getItemAsString(null));
+				}
+				sc.close();
+	}
+}
+
+//employee.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+<employee>
+<name>harshal</name>
+<lastname>patil</lastname>
+<id>1</id>
+<location>Shirdi</location>
+<age>20</age>
+<designation>Manager</designation>
+<salary>100000</salary>
+</employee>
+
+<employee>
+<name>dinesh</name>
+<lastname>bhapse</lastname>
+<id>2</id>
+<location>JK</location>
+<age>30</age>
+<designation>Manager</designation>
+<salary>60000</salary>
+</employee>
+
+<employee>
+<name>swapnil</name>
+<lastname>baviskar</lastname>
+<id>3</id>
+<location>Yeola</location>
+<age>24</age>
+<designation>Trainee</designation>
+<salary>25000</salary>
+</employee>
+
+<employee>
+<name>Shraddha</name>
+<lastname>Chaudhari</lastname>
+<id>4</id>
+<location>Kpg</location>
+<age>30</age>
+<designation>Trainee</designation>
+<salary>25000</salary>
+</employee>
+
+
+<employee>
+<name>ajay</name>
+<lastname>Chaudhary</lastname>
+<id>5</id>
+<location>Mahegaon</location>
+<age>32</age>
+<designation>Manager</designation>
+<salary>65000</salary>
+</employee>
+
+<employee>
+<name>Raju</name>
+<lastname>Nikam</lastname>
+<id>6</id>
+<location>Ukkadgaon</location>
+<age>32</age>
+<designation>trainee</designation>
+<salary>25000</salary>
+</employee>
+
+<employee>
+<name>Prasad</name>
+<lastname>Mahale</lastname>
+<id>7</id>
+<location>Nasik</location>
+<age>28</age>
+<designation>Team Leader</designation>
+<salary>45000</salary>
+</employee>
+
+<employee>
+<name>Jay</name>
+<lastname>Sonawane</lastname>
+<id>8</id>
+<location>Paithan</location>
+<age>30</age>
+<designation>Trainee</designation>
+<salary>26000</salary>
+</employee>
+
+<employee>
+<name>Pratik</name>
+<lastname>Kale</lastname>
+<id>9</id>
+<location>Mumbai</location>
+<age>30</age>
+<designation>Supervisor</designation>
+<salary>28000</salary>
+</employee>
+
+<employee>
+<name>Manoj</name>
+<lastname>Patil</lastname>
+<id>10</id>
+<location>Jalgaon</location>
+<age>35</age>
+<designation>Supervisor</designation>
+<salary>28000</salary>
+</employee>
+
+<employee>
+<name>Lalit</name>
+<lastname>Shinde</lastname>
+<id>11</id>
+<location>Chalisgaon</location>
+<age>40</age>
+<designation>Manager</designation>
+<salary>50000</salary>
+</employee>
+
+<employee>
+<name>Vinod</name>
+<lastname>Bari</lastname>
+<id>12</id>
+<location>Nasik</location>
+<age>24</age>
+<designation>Trainee</designation>
+<salary>25000</salary>
+</employee>
+
+
+
+</employees>
+
+
+employee_flowr.xqy:
+
+let $employees:=(doc("employee.xml")/employees/employee)
+return <results>
+		{
+			for $x in $employees
+				where $x/age>30
+				order by $x/age
+				return $x/name
+		}
+		</results>
+
+============================================================
+
+Output:
+
+QUERY NO:1: DISPLAYING LOCATION EMPLOYEE
+
+ Enter empid to get the location :
+1
+
+Location Having Id 1 Is:Shirdi
+
+QUERY NO:2: DISPLAYING FIRSTNAME OF ALL EMPLOYEES
+harshal
+
+dinesh
+
+swapnil
+
+Shraddha
+
+ajay
+
+Raju
+
+Prasad
+
+Jay
+
+Pratik
+
+Manoj
+
+Lalit
+
+Vinod
+
+
+QUERY NO:3: DISPLAYING ALL RECORD OF PARTICULAR EMPLOYEE
+Enter Empid:
+2
+name:dinesh
+
+lastname:bhapse
+
+id:2
+
+location:JK
+
+age:30
+
+designation:Manager
+
+salary:60000
+
+
+QUERY NO:4: DISPLAYING NAMES OF EMPLOYEES WHOSE AGE<25
+harshal
+
+dinesh
+
+swapnil
+
+Shraddha
+
+ajay
+
+Raju
+
+Prasad
+
+Jay
+
+Pratik
+
+Manoj
+
+Vinod
+
+QUERY NO:1: DISPLAYING LOCATION EMPLOYEE
+
+ Enter empid to get the location :
+1
+
+Location Having Id 1 Is:Shirdi
+
+QUERY NO:2: DISPLAYING FIRSTNAME OF ALL EMPLOYEES
+harshal
+
+dinesh
+
+swapnil
+
+Shraddha
+
+ajay
+
+Raju
+
+Prasad
+
+Jay
+
+Pratik
+
+Manoj
+
+Lalit
+
+Vinod
+
+
+QUERY NO:3: DISPLAYING ALL RECORD OF PARTICULAR EMPLOYEE
+Enter Empid:
+2
+name:dinesh
+
+lastname:bhapse
+
+id:2
+
+location:JK
+
+age:30
+
+designation:Manager
+
+salary:60000
+
+
+QUERY NO:4: DISPLAYING NAMES OF EMPLOYEES WHOSE AGE<25
+harshal
+
+dinesh
+
+swapnil
+
+Shraddha
+
+ajay
+
+Raju
+
+Prasad
+
+Jay
+
+Pratik
+
+Manoj
+
+Vinod
+
+
+QUERY NO:5: FIRST EMPLOYEE REGISTERED
+name:harshal
+
+lastname:patil
+
+id:1
+
+location:Shirdi
+
+age:20
+
+designation:Manager
+
+salary:100000
+
+
+QUERY NO:6: LAST EMPLOYEE REGIETERED
+name:Vinod
+
+lastname:Bari
+
+id:12
+
+location:Nasik
+
+age:24
+
+designation:Trainee
+
+salary:25000
+
+
+QUERY NO:7: FIRST NAME OF ALL TEAM LEADERS
+Prasad
+
+
+QUERY NO:8: LAST NAME OF ALL MANAGERS
+patil
+
+bhapse
+
+Chaudhary
+
+Shinde
+
+
+QUERY NO:9: AGE OF ALL TRAINEES
+24
+
+30
+
+30
+
+24
+
+
+QUERY NO:10: SALARY OF ALL SUPERVISORS
+100000
+
+60000
+
+65000
+
+50000
+
+
+QUERY NO:11: FLOWR EXPRESSION EXAMPLE
+
+GET FIRST NAME OF ALL EMPLOYEES HAVING AGE>30 USING FLOWR EXPRESSION
+
+<results>
+   <name>ajay</name>
+   <name>Raju</name>
+   <name>Manoj</name>
+   <name>Lalit</name>
+</results>
+
+QUERY NO:5: FIRST EMPLOYEE REGISTERED
+name:harshal
+
+lastname:patil
+
+id:1
+
+location:Shirdi
+
+age:20
+
+designation:Manager
+
+salary:100000
+
+
+QUERY NO:6: LAST EMPLOYEE REGIETERED
+name:Vinod
+
+lastname:Bari
+
+id:12
+
+location:Nasik
+
+age:24
+
+designation:Trainee
+
+salary:25000
+
+
+QUERY NO:7: FIRST NAME OF ALL TEAM LEADERS
+Prasad
+
+
+QUERY NO:8: LAST NAME OF ALL MANAGERS
+patil
+
+bhapse
+
+Chaudhary
+
+Shinde
+
+
+QUERY NO:9: AGE OF ALL TRAINEES
+24
+
+30
+
+30
+
+24
+
+
+QUERY NO:10: SALARY OF ALL SUPERVISORS
+100000
+
+60000
+
+65000
+
+50000
+
+
+QUERY NO:11: FLOWR EXPRESSION EXAMPLE
+
+GET FIRST NAME OF ALL EMPLOYEES HAVING AGE>30 USING FLOWR EXPRESSION
+
+<results>
+   <name>ajay</name>
+   <name>Raju</name>
+   <name>Manoj</name>
+   <name>Lalit</name>
+</results>
+
